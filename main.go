@@ -2,11 +2,13 @@ package main
 
 import (
 	"flag"
-	"os"
-	"io/ioutil"
-	"text/template"
-	"gopkg.in/yaml.v2"
 	"github.com/Masterminds/sprig"
+	"github.com/imdario/mergo"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"os"
+	"strings"
+	"text/template"
 )
 
 var (
@@ -45,15 +47,23 @@ func init() {
 
 	if *datafileFlag != "" {
 
-		dataBytes, err := ioutil.ReadFile(*datafileFlag)
-		if err != nil {
-			panic(err)
+		dataFiles := strings.Split(*datafileFlag, ",")
+
+		for _, dataFile := range dataFiles {
+			var dataInner map[interface{}]interface{}
+
+			dataBytes, err := ioutil.ReadFile(dataFile)
+			if err != nil {
+				panic(err)
+			}
+
+			err = yaml.Unmarshal(dataBytes, &dataInner)
+			if err != nil {
+				panic(err)
+			}
+			mergo.Merge(&data, dataInner)
 		}
 
-		err = yaml.Unmarshal(dataBytes, &data)
-		if err != nil {
-			panic(err)
-		}
 	}
 
 }

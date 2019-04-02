@@ -28,3 +28,8 @@
 [[constraint]]
   name = "github.com/Masterminds/sprig"
   version = "v2.14.0"
+
+
+[[constraint]]
+  name = "github.com/imdario/mergo"
+  version = "0.2.4"
