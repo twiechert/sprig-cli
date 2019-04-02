@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/Masterminds/sprig"
 	"github.com/imdario/mergo"
 	"gopkg.in/yaml.v2"
@@ -16,7 +17,7 @@ var (
 	tmplFlag     = flag.String("tmpl", "", "Template")
 
 	tmpl []byte
-	data map[interface{}]interface{}
+	data map[string]interface{} = make(map[string]interface{})
 )
 
 func init() {
@@ -47,21 +48,32 @@ func init() {
 
 	if *datafileFlag != "" {
 
-		dataFiles := strings.Split(*datafileFlag, ",")
+		dataFiles := strings.Split(*datafileFlag, ";")
 
 		for _, dataFile := range dataFiles {
-			var dataInner map[interface{}]interface{}
 
-			dataBytes, err := ioutil.ReadFile(dataFile)
-			if err != nil {
-				panic(err)
+			trimedDataFile := strings.TrimSpace(dataFile)
+
+			if len(strings.TrimSpace(trimedDataFile)) > 0 {
+
+				var dataInner map[string]interface{}
+
+				dataBytes, err := ioutil.ReadFile(trimedDataFile)
+				if err != nil {
+					panic(err)
+				}
+
+				err = yaml.Unmarshal(dataBytes, &dataInner)
+				if err != nil {
+					panic(err)
+				}
+
+				mergo.Merge(&data, dataInner, mergo.WithAppendSlice)
+
+				out, _ := yaml.Marshal(data)
+				fmt.Fprintf(os.Stderr, "%s", out)
 			}
 
-			err = yaml.Unmarshal(dataBytes, &dataInner)
-			if err != nil {
-				panic(err)
-			}
-			mergo.Merge(&data, dataInner)
 		}
 
 	}
